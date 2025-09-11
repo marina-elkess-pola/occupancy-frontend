@@ -1,4 +1,4 @@
-import OccuCalcTools from '../../occupancy-calculator/src/OccuCalcTools';
+import OccuCalcTools from './OccuCalcTools';
 
 export default function OccuCalc() {
     return <OccuCalcTools />;
