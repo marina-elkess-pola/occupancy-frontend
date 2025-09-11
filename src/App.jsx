@@ -1,5 +1,5 @@
-﻿import { useEffect, useState } from "react";
-const API = import.meta.env.VITE_API_URL || "http://127.0.0.1:5050";
+﻿import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import OccuCalc from "./OccuCalc";
 
 const TOOLS = [
   {
@@ -7,6 +7,7 @@ const TOOLS = [
     desc: "Efficient occupant load calculator for architects and engineers. Instantly estimate safe occupancy for any space.",
     price: "$19/month",
     active: true,
+    link: "/occucalc"
   },
   {
     name: "ParkCore",
@@ -14,38 +15,11 @@ const TOOLS = [
     price: "$29/month",
     active: false,
     comingSoon: true,
+    link: "#"
   },
 ];
 
-export default function App() {
-  const [rooms, setRooms] = useState([]);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-
-  async function load() {
-    setErr("");
-    try {
-      const res = await fetch(`${API}/rooms`);
-      const data = await res.json();
-      setRooms(data);
-    } catch (e) { setErr(String(e)); }
-  }
-
-  async function addSample() {
-    setBusy(true); setErr("");
-    try {
-      const res = await fetch(`${API}/rooms`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ number: "101", name: "Lobby", area: 120, occupancyType: "Assembly" })
-      });
-      if (!res.ok) throw new Error(await res.text());
-      await load();
-    } finally { setBusy(false); }
-  }
-
-  useEffect(() => { load(); }, []);
-
+function Home() {
   return (
     <div style={{
       fontFamily: "system-ui, sans-serif",
@@ -54,6 +28,7 @@ export default function App() {
       padding: 0,
       margin: 0,
     }}>
+      <Link to="/register" style={{ position: 'absolute', right: 32, top: 32, background: '#2563eb', color: '#fff', borderRadius: 6, padding: '6px 16px', fontWeight: 500, textDecoration: 'none', fontSize: '1rem', boxShadow: '0 2px 8px #0001' }}>Register</Link>
       <header style={{
         background: "#1a365d",
         color: "#fff",
@@ -112,16 +87,17 @@ export default function App() {
                   marginBottom: 8
                 }}>Price: {tool.price}</div>
                 {tool.active && (
-                  <span style={{
+                  <Link to={tool.link} style={{
                     display: "inline-block",
                     background: "#1a365d",
                     color: "#fff",
                     borderRadius: 6,
-                    padding: "4px 12px",
-                    fontSize: "0.95rem",
+                    padding: "6px 16px",
+                    fontSize: "1rem",
                     fontWeight: 500,
-                    marginTop: 6
-                  }}>Available</span>
+                    marginTop: 6,
+                    textDecoration: "none"
+                  }}>Open Tool</Link>
                 )}
                 {tool.comingSoon && (
                   <span style={{
@@ -137,52 +113,6 @@ export default function App() {
                 )}
               </div>
             ))}
-          </div>
-        </section>
-
-        <section>
-          <h2 style={{ fontSize: "1.7rem", marginBottom: 12 }}>OccuCalc Tool</h2>
-          <p style={{ marginBottom: 18, color: "#333" }}>
-            Calculate occupant load for any room. Enter details below or add a sample room to try it out.
-          </p>
-          <div style={{
-            background: "#f6faff",
-            borderRadius: 10,
-            padding: "24px 18px",
-            boxShadow: "0 2px 8px #1a365d11",
-            marginBottom: 24,
-            maxWidth: 500
-          }}>
-            <button
-              onClick={addSample}
-              disabled={busy}
-              style={{
-                background: "#1a365d",
-                color: "#fff",
-                border: "none",
-                borderRadius: 6,
-                padding: "10px 22px",
-                fontSize: "1.1rem",
-                fontWeight: 500,
-                cursor: busy ? "not-allowed" : "pointer",
-                marginBottom: 12,
-                boxShadow: "0 1px 4px #1a365d22"
-              }}
-            >
-              {busy ? "Adding…" : "Add Sample Room"}
-            </button>
-            {err && <p style={{ color: "crimson", marginTop: 8 }}>{err}</p>}
-            <pre style={{
-              background: "#fff",
-              padding: 12,
-              borderRadius: 6,
-              marginTop: 10,
-              fontSize: "1rem",
-              color: "#222",
-              boxShadow: "0 1px 4px #0001"
-            }}>
-              {JSON.stringify(rooms, null, 2)}
-            </pre>
           </div>
         </section>
 
@@ -213,5 +143,17 @@ export default function App() {
         &copy; {new Date().getFullYear()} GenFab Tools. All rights reserved.
       </footer>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/occucalc" element={<OccuCalc />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
