@@ -1,4 +1,3 @@
-// src/OccuCalcTools.js
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
@@ -190,5 +189,3 @@ export default function OccuCalcTools() {
         </main>
     );
 }
-
-// ...styles, helpers, TotalsPanel, Th, etc. as in backend OccuCalcTools.js...

@@ -1,5 +1,5 @@
-import OccuCalcTools from './OccuCalcTools';
+import OccuCalcTools from './OccuCalcTools.jsx';
 
 export default function OccuCalc() {
-    return <OccuCalcTools />;
+    return <OccuCalcTools />; // Updated import to OccuCalcTools.jsx
 }
