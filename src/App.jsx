@@ -1,5 +1,6 @@
 ﻿import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import OccuCalc from "./OccuCalc";
+import Register from "./Register";
 
 const TOOLS = [
   {
