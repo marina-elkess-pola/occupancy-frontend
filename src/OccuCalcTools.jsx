@@ -12,8 +12,8 @@ const CODE_SETS = {
     IBC_2024: {
         label: "IBC 2024 (Table 1004.5) – starter",
         factors: {
-            "Assembly – fixed seats": 1,            // seats/person (treated as 1 m²/seat equivalence in UI)
-            "Assembly – standing": 0.65,            // m²/person (dense)
+            "Assembly – fixed seats": 1,
+            "Assembly – standing": 0.65,
             "Assembly – tables & chairs": 1.4,
             "Classroom": 1.9,
             "Laboratory": 4.6,
@@ -33,12 +33,55 @@ const CODE_SETS = {
             "Storage – general": 46.5,
             "Parking garage": 46.5,
             "Mechanical / Electrical": 28,
-            "Corridor": 0.5,                        // capacity calc aid
-            "Stair": 0.25                           // capacity calc aid
+            "Corridor": 0.5,
+            "Stair": 0.25
+        }
+    },
+    IBC_2018: {
+        label: "IBC 2018 (Table 1004.5)",
+        factors: {
+            "Assembly – fixed seats": 1,
+            "Assembly – standing": 0.65,
+            "Assembly – tables & chairs": 1.4,
+            "Classroom": 1.9,
+            "Laboratory": 4.6,
+            "Business/Office": 9.3,
+            "Retail / Mercantile – sales floor": 2.8,
+            "Retail – storage/back of house": 28,
+            "Residential – dwelling unit": 18.6,
+            "Residential – hotel/motel": 18.6,
+            "Residential – dormitory": 9.3,
+            "Industrial – shop/plant": 9.3,
+            "Educational – day care": 3.7,
+            "Educational – K-12": 1.9,
+            "Medical – in-patient": 22.3,
+            "Medical – out-patient": 9.3,
+            "Storage – general": 46.5,
+            "Parking garage": 46.5,
+            "Mechanical / Electrical": 28,
+            "Corridor": 0.5,
+            "Stair": 0.25
         }
     },
     NFPA_101_2024: {
         label: "NFPA 101 (2024) – starter",
+        factors: {
+            "Assembly – standing": 0.65,
+            "Assembly – tables & chairs": 1.4,
+            "Classroom": 1.9,
+            "Laboratory": 4.6,
+            "Business/Office": 9.3,
+            "Retail / Mercantile – sales floor": 2.8,
+            "Residential – hotel/motel": 18.6,
+            "Residential – dormitory": 9.3,
+            "Industrial – shop/plant": 9.3,
+            "Medical – out-patient": 9.3,
+            "Storage – general": 46.5,
+            "Mechanical / Electrical": 28
+        }
+    },
+    NFPA_5000_2021: {
+        label: "NFPA 5000 (2021)",
         factors: {
             "Assembly – standing": 0.65,
             "Assembly – tables & chairs": 1.4,
@@ -68,7 +111,78 @@ const CODE_SETS = {
             "Storage": 50
         }
     },
-    // Keep a generic set too
+    AU_NCC_2019: {
+        label: "Australia NCC (2019)",
+        factors: {
+            "Assembly": 1,
+            "Office": 10,
+            "Retail": 2.5,
+            "Schools": 2,
+            "Residential": 18,
+            "Industrial": 10,
+            "Storage": 50
+        }
+    },
+    CA_NBC_2015: {
+        label: "Canada NBC (2015)",
+        factors: {
+            "Assembly": 0.75,
+            "Office": 9.3,
+            "Retail": 2.8,
+            "Schools": 2,
+            "Residential": 18.6,
+            "Industrial": 9.3,
+            "Storage": 46.5
+        }
+    },
+    EU_Eurocode: {
+        label: "EU Eurocode (EN 1991-1-1)",
+        factors: {
+            "Assembly": 0.5,
+            "Office": 10,
+            "Retail": 2.5,
+            "Schools": 2,
+            "Residential": 18,
+            "Industrial": 10,
+            "Storage": 50
+        }
+    },
+    UAE_FireCode: {
+        label: "UAE Fire & Life Safety Code",
+        factors: {
+            "Assembly": 0.65,
+            "Office": 9.3,
+            "Retail": 2.8,
+            "Schools": 2,
+            "Residential": 18.6,
+            "Industrial": 9.3,
+            "Storage": 46.5
+        }
+    },
+    SAUDI_BuildingCode: {
+        label: "Saudi Building Code",
+        factors: {
+            "Assembly": 0.65,
+            "Office": 9.3,
+            "Retail": 2.8,
+            "Schools": 2,
+            "Residential": 18.6,
+            "Industrial": 9.3,
+            "Storage": 46.5
+        }
+    },
+    EGYPT_BuildingCode: {
+        label: "Egypt Building Code",
+        factors: {
+            "Assembly": 0.65,
+            "Office": 9.3,
+            "Retail": 2.8,
+            "Schools": 2,
+            "Residential": 18.6,
+            "Industrial": 9.3,
+            "Storage": 46.5
+        }
+    },
     GENERIC: {
         label: "Generic (edit as needed)",
         factors: {
@@ -77,6 +191,10 @@ const CODE_SETS = {
             "Administrative": 9.3,
             "Mechanical": 28
         }
+    },
+    CUSTOM: {
+        label: "Custom (user-defined)",
+        factors: {}
     }
 };
 
@@ -95,9 +213,13 @@ const toNumber = (x) => {
     const n = Number(x);
     return Number.isFinite(n) ? n : 0;
 };
-const ceilDivide = (area, factor) => {
-    const a = Number(area);
-    const f = Number(factor) > 0 ? Number(factor) : 1;
+const ceilDivide = (area, factor, unitSystem) => {
+    let a = Number(area);
+    let f = Number(factor) > 0 ? Number(factor) : 1;
+    if (unitSystem === 'imperial') {
+        // Convert area to ft² if input is m²
+        a = a * 10.764;
+    }
     if (!Number.isFinite(a) || a <= 0) return 0;
     return Math.ceil(a / f);
 };
@@ -106,6 +228,25 @@ const ceilDivide = (area, factor) => {
 // Component
 // =========================================================
 export default function OccuCalcTools() {
+    // Metric/Imperial toggle
+    const [unitSystem, setUnitSystem] = useState(() => {
+        const saved = localStorage.getItem('occuCalc.unitSystem');
+        return saved === 'imperial' ? 'imperial' : 'metric';
+    });
+    useEffect(() => {
+        localStorage.setItem('occuCalc.unitSystem', unitSystem);
+    }, [unitSystem]);
+    // Keyboard shortcut: add row on '+' or '_' key
+    useEffect(() => {
+        const handler = (e) => {
+            if ((e.key === '+' || e.key === '_') && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                if (mode === 'manual') addManualRow(1);
+                else addGridRow(1);
+            }
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [mode]);
     // Mode and active code-set
     const [mode, setMode] = useState("manual"); // "manual" | "upload"
     const [codeId, setCodeId] = useState("IBC_2024");
@@ -195,7 +336,7 @@ export default function OccuCalcTools() {
     const displayedManual = useMemo(() => {
         let rows = manualRows.map((r) => ({
             ...r,
-            load: ceilDivide(r.area, currentFactors[r.type])
+            load: ceilDivide(r.area, currentFactors[r.type], unitSystem)
         }));
         if (filterType !== "All") rows = rows.filter((r) => r.type === filterType);
         if (search.trim()) {
@@ -217,14 +358,15 @@ export default function OccuCalcTools() {
             return 0;
         });
         return rows;
-    }, [manualRows, filterType, search, sortKey, sortDir, currentFactors]);
+    }, [manualRows, filterType, search, sortKey, sortDir, currentFactors, unitSystem]);
 
     const displayedGrid = useMemo(() => {
         let rows = gridRows.map((r) => ({
             ...r,
             "Occupant Load": ceilDivide(
                 r["Area (m²)"],
-                currentFactors[r["Occupancy Type"]]
+                currentFactors[r["Occupancy Type"]],
+                unitSystem
             )
         }));
         if (filterType !== "All")
@@ -242,19 +384,19 @@ export default function OccuCalcTools() {
             const keyMap = {
                 number: "Room #",
                 name: "Room Name",
-                area: "Area (m²)",
+                area: `Area (${unitSystem === 'imperial' ? 'ft²' : 'm²'})`,
                 type: "Occupancy Type",
                 load: "Occupant Load"
             };
             const col = keyMap[sortKey] || "Room #";
-            const va = col === "Area (m²)" || col === "Occupant Load" ? toNumber(a[col]) : String(a[col] || "");
-            const vb = col === "Area (m²)" || col === "Occupant Load" ? toNumber(b[col]) : String(b[col] || "");
+            const va = (col === `Area (${unitSystem === 'imperial' ? 'ft²' : 'm²'})` || col === "Occupant Load") ? toNumber(a[col]) : String(a[col] || "");
+            const vb = (col === `Area (${unitSystem === 'imperial' ? 'ft²' : 'm²'})` || col === "Occupant Load") ? toNumber(b[col]) : String(b[col] || "");
             if (va < vb) return -1 * dir;
             if (va > vb) return 1 * dir;
             return 0;
         });
         return rows;
-    }, [gridRows, filterType, search, sortKey, sortDir, currentFactors]);
+    }, [gridRows, filterType, search, sortKey, sortDir, currentFactors, unitSystem]);
 
     // -------------------- selection (bulk actions)
     const selCount = useMemo(() => {
@@ -640,7 +782,22 @@ export default function OccuCalcTools() {
 
             {/* Control bar */}
             <div style={bar()}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                    <label><strong>Units:</strong></label>
+                    <select value={unitSystem} onChange={e => setUnitSystem(e.target.value)} style={select(120)}>
+                        <option value="metric">Metric (m²)</option>
+                        <option value="imperial">Imperial (ft²)</option>
+                    </select>
+                </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                    <button
+                        onClick={() => (mode === 'manual' ? addManualRow(1) : addGridRow(1))}
+                        style={{ ...btn(), fontSize: 18, fontWeight: 600, marginRight: 8 }}
+                        title="Add a new space/room (shortcut: + or _ key)"
+                    >
+                        ＋ Add Row
+                    </button>
+                    <span style={{ color: '#888', fontSize: 13 }}>(Shortcut: + or _ key)</span>
                     <label><strong>Mode:</strong></label>
                     <select value={mode} onChange={(e) => setMode(e.target.value)} style={select(160)}>
                         <option value="manual">Manual entry</option>
@@ -709,7 +866,7 @@ export default function OccuCalcTools() {
                             <thead>
                                 <tr>
                                     <th style={th(320)}>Occupancy Type</th>
-                                    <th style={th(200)}>Factor (m²/person)</th>
+                                    <th style={th(200)}>{`Factor (${unitSystem === 'imperial' ? 'ft²' : 'm²'}/person)`}</th>
                                     <th style={th(120)}></th>
                                 </tr>
                             </thead>
@@ -820,7 +977,7 @@ export default function OccuCalcTools() {
                                         <th style={th(40)}></th>
                                         <Th label="#" onClick={() => toggleSort("number")} active={sortKey === "number"} dir={sortDir} />
                                         <Th label="Room Name" onClick={() => toggleSort("name")} active={sortKey === "name"} dir={sortDir} />
-                                        <Th label="Area (m²)" width={120} onClick={() => toggleSort("area")} active={sortKey === "area"} dir={sortDir} />
+                                        <Th label={`Area (${unitSystem === 'imperial' ? 'ft²' : 'm²'})`} width={120} onClick={() => toggleSort("area")} active={sortKey === "area"} dir={sortDir} />
                                         <Th label="Occupancy Type" width={240} onClick={() => toggleSort("type")} active={sortKey === "type"} dir={sortDir} />
                                         <Th label="Load" width={100} onClick={() => toggleSort("load")} active={sortKey === "load"} dir={sortDir} />
                                         <th style={th(60)}></th>
@@ -884,7 +1041,7 @@ export default function OccuCalcTools() {
                                         <th style={th(40)}></th>
                                         <Th label="Room #" width={100} onClick={() => toggleSort("number")} active={sortKey === "number"} dir={sortDir} />
                                         <Th label="Room Name" onClick={() => toggleSort("name")} active={sortKey === "name"} dir={sortDir} />
-                                        <Th label="Area (m²)" width={120} onClick={() => toggleSort("area")} active={sortKey === "area"} dir={sortDir} />
+                                        <Th label={`Area (${unitSystem === 'imperial' ? 'ft²' : 'm²'})`} width={120} onClick={() => toggleSort("area")} active={sortKey === "area"} dir={sortDir} />
                                         <Th label="Occupancy Type" width={260} onClick={() => toggleSort("type")} active={sortKey === "type"} dir={sortDir} />
                                         <Th label="Load" width={100} onClick={() => toggleSort("load")} active={sortKey === "load"} dir={sortDir} />
                                         <th style={th(60)}></th>
