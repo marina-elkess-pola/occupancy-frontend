@@ -228,6 +228,10 @@ const ceilDivide = (area, factor, unitSystem) => {
 // Component
 // =========================================================
 export default function OccuCalcTools() {
+    // Mode and active code-set
+    const [mode, setMode] = useState("manual"); // "manual" | "upload"
+    const [codeId, setCodeId] = useState("IBC_2024");
+
     // Metric/Imperial toggle
     const [unitSystem, setUnitSystem] = useState(() => {
         const saved = localStorage.getItem('occuCalc.unitSystem');
@@ -247,10 +251,6 @@ export default function OccuCalcTools() {
         window.addEventListener('keydown', handler);
         return () => window.removeEventListener('keydown', handler);
     }, [mode]);
-    // Mode and active code-set
-    const [mode, setMode] = useState("manual"); // "manual" | "upload"
-    const [codeId, setCodeId] = useState("IBC_2024");
-
     // overrides per code (allow edits)
     const [overrides, setOverrides] = useState({});
     useEffect(() => {
