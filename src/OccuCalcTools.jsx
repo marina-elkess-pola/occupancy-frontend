@@ -774,340 +774,351 @@ export default function OccuCalcTools() {
     };
 
     return (
-        <div style={{ fontFamily: "Arial, sans-serif", padding: 24, maxWidth: 1220, margin: "0 auto" }}>
-            <h1 style={{ margin: 0 }}>🏢 OccuCalc</h1>
-            <p style={{ color: "#444", marginTop: 6 }}>
-                Calculate occupant loads with search, filters, bulk actions, and exports. Factors are editable per code set.
-            </p>
-
-            {/* Control bar */}
-            <div style={bar()}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                    <label><strong>Units:</strong></label>
-                    <select value={unitSystem} onChange={e => setUnitSystem(e.target.value)} style={select(120)}>
-                        <option value="metric">Metric (m²)</option>
-                        <option value="imperial">Imperial (ft²)</option>
-                    </select>
+        <div style={{ fontFamily: "system-ui, sans-serif", background: "#f8fafc", minHeight: "100vh", padding: 0, margin: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ maxWidth: 1200, width: "100%", margin: "0 auto", padding: "32px 0 0 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, justifyContent: "center" }}>
+                    <img src={require('./assets/occucalc-logo.png')} alt="OccuCalc logo" style={{ width: 56, height: 56, marginRight: 8, borderRadius: 12, background: '#fff' }} />
+                    <h1 style={{ fontSize: "2.6rem", fontWeight: 700, margin: 0, letterSpacing: 1, textAlign: "center" }}>
+                        OccuCalc
+                    </h1>
                 </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                    <button
-                        onClick={() => (mode === 'manual' ? addManualRow(1) : addGridRow(1))}
-                        style={{ ...btn(), fontSize: 18, fontWeight: 600, marginRight: 8 }}
-                        title="Add a new space/room (shortcut: + or _ key)"
-                    >
-                        ＋ Add Row
-                    </button>
-                    <span style={{ color: '#888', fontSize: 13 }}>(Shortcut: + or _ key)</span>
-                    <label><strong>Mode:</strong></label>
-                    <select value={mode} onChange={(e) => setMode(e.target.value)} style={select(160)}>
-                        <option value="manual">Manual entry</option>
-                        <option value="upload">Upload Excel</option>
-                    </select>
+                <p style={{ color: "#444", marginTop: 6, textAlign: "center" }}>
+                    Calculate occupant loads with search, filters, bulk actions, and exports. Factors are editable per code set.
+                </p>
 
-                    <label><strong>Code:</strong></label>
-                    <select value={codeId} onChange={(e) => setCodeId(e.target.value)} style={select(260)}>
-                        {Object.entries(CODE_SETS).map(([id, cfg]) => (
-                            <option key={id} value={id}>{cfg.label}</option>
-                        ))}
-                    </select>
-
-                    <button onClick={() => setShowEditor((s) => !s)} style={btn("ghost")}>
-                        {showEditor ? "Hide factors" : "Edit factors"}
-                    </button>
-
-                    <label><strong>Type filter:</strong></label>
-                    <select value={filterType} onChange={(e) => setFilterType(e.target.value)} style={select(200)}>
-                        <option>All</option>
-                        {typeList.map((t) => <option key={t}>{t}</option>)}
-                    </select>
-
-                    <input
-                        placeholder="Search room # / name…"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        style={input(220)}
-                    />
-
-                    {isManual ? (
-                        <>
-                            <button onClick={() => addManualRow(1)} style={btn()}>Add 1</button>
-                            <button onClick={() => addManualRow(10)} style={btn()}>Add 10</button>
-                            <button onClick={addManualAllTypes} style={btn()}>Add one per type</button>
-                            <button onClick={clearManual} style={btn("ghost")}>Clear</button>
-                        </>
-                    ) : (
-                        <>
-                            <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={onFileInput} title="Upload Excel" />
-                            <button onClick={addGridRow} style={btn()}>Add 1</button>
-                            <button onClick={() => addGridRow(10)} style={btn()}>Add 10</button>
-                            <button onClick={addGridAllTypes} style={btn()}>Add one per type</button>
-                            <button onClick={clearGrid} style={btn("ghost")}>Clear</button>
-                            <button onClick={downloadTemplate} style={btn("ghost")}>Template</button>
-                        </>
-                    )}
-                </div>
-
-                <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={exportExcel} style={btn()}>Export Excel</button>
-                    <button onClick={exportPDFSummary} style={btn()}>PDF Summary</button>
-                    <button onClick={exportPDFDetailed} style={btn()}>PDF Detailed</button>
-                </div>
-            </div>
-
-            {/* Factor editor */}
-            {showEditor && (
-                <div style={{ border: "1px solid #e5e7eb", borderRadius: 10, padding: 12, marginTop: 12 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                        <strong>Factors for: {CODE_SETS[codeId]?.label || codeId}</strong>
-                        <button onClick={resetCodeToDefaults} style={btn("danger")}>Reset to defaults</button>
+                {/* Control bar */}
+                <div style={{ ...bar(), position: "sticky", top: 0, zIndex: 10, background: "#f8fafc", paddingBottom: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                        <label><strong>Units:</strong></label>
+                        <select value={unitSystem} onChange={e => setUnitSystem(e.target.value)} style={select(120)}>
+                            <option value="metric">Metric (m²)</option>
+                            <option value="imperial">Imperial (ft²)</option>
+                        </select>
                     </div>
-                    <div style={{ overflowX: "auto", marginTop: 10 }}>
-                        <table style={table()}>
-                            <thead>
-                                <tr>
-                                    <th style={th(320)}>Occupancy Type</th>
-                                    <th style={th(200)}>{`Factor (${unitSystem === 'imperial' ? 'ft²' : 'm²'}/person)`}</th>
-                                    <th style={th(120)}></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {typeList.map((t) => (
-                                    <tr key={t}>
-                                        <td style={td(320)}>{t}</td>
-                                        <td style={td(200)}>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                        <button
+                            onClick={() => (mode === 'manual' ? addManualRow(1) : addGridRow(1))}
+                            style={{ ...btn(), fontSize: 18, fontWeight: 600, marginRight: 8 }}
+                            title="Add a new space/room (shortcut: + or _ key)"
+                        >
+                            ＋ Add Row
+                        </button>
+                        <span style={{ color: '#888', fontSize: 13 }}>(Shortcut: + or _ key)</span>
+                        <label><strong>Mode:</strong></label>
+                        <select value={mode} onChange={(e) => setMode(e.target.value)} style={select(160)}>
+                            <option value="manual">Manual entry</option>
+                            <option value="upload">Upload Excel</option>
+                        </select>
+
+                        <label><strong>Code:</strong></label>
+                        <select value={codeId} onChange={(e) => setCodeId(e.target.value)} style={select(260)}>
+                            {Object.entries(CODE_SETS).map(([id, cfg]) => (
+                                <option key={id} value={id}>{cfg.label}</option>
+                            ))}
+                        </select>
+
+                        <button onClick={() => setShowEditor((s) => !s)} style={btn("ghost")}>
+                            {showEditor ? "Hide factors" : "Edit factors"}
+                        </button>
+
+                        <label><strong>Type filter:</strong></label>
+                        <select value={filterType} onChange={(e) => setFilterType(e.target.value)} style={select(200)}>
+                            <option>All</option>
+                            {typeList.map((t) => <option key={t}>{t}</option>)}
+                        </select>
+
+                        <input
+                            placeholder="Search room # / name…"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            style={input(220)}
+                        />
+
+                        {isManual ? (
+                            <>
+                                <button onClick={() => addManualRow(1)} style={btn()}>Add 1</button>
+                                <button onClick={() => addManualRow(10)} style={btn()}>Add 10</button>
+                                <button onClick={addManualAllTypes} style={btn()}>Add one per type</button>
+                                <button onClick={clearManual} style={btn("ghost")}>Clear</button>
+                            </>
+                        ) : (
+                            <>
+                                <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={onFileInput} title="Upload Excel" />
+                                <button onClick={addGridRow} style={btn()}>Add 1</button>
+                                <button onClick={() => addGridRow(10)} style={btn()}>Add 10</button>
+                                <button onClick={addGridAllTypes} style={btn()}>Add one per type</button>
+                                <button onClick={clearGrid} style={btn("ghost")}>Clear</button>
+                                <button onClick={downloadTemplate} style={btn("ghost")}>Template</button>
+                            </>
+                        )}
+                    </div>
+
+                    <div style={{ display: "flex", gap: 8 }}>
+                        <button onClick={exportExcel} style={btn()}>Export Excel</button>
+                        <button onClick={exportPDFSummary} style={btn()}>PDF Summary</button>
+                        <button onClick={exportPDFDetailed} style={btn()}>PDF Detailed</button>
+                    </div>
+                </div>
+
+                {/* Factor editor */}
+                {showEditor && (
+                    <div style={{ border: "1px solid #e5e7eb", borderRadius: 10, padding: 12, marginTop: 12 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                            <strong>Factors for: {CODE_SETS[codeId]?.label || codeId}</strong>
+                            <button onClick={resetCodeToDefaults} style={btn("danger")}>Reset to defaults</button>
+                        </div>
+                        <div style={{ overflowX: "auto", marginTop: 10 }}>
+                            <table style={table()}>
+                                <thead>
+                                    <tr>
+                                        <th style={th(320)}>Occupancy Type</th>
+                                        <th style={th(200)}>{`Factor (${unitSystem === 'imperial' ? 'ft²' : 'm²'}/person)`}</th>
+                                        <th style={th(120)}></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {typeList.map((t) => (
+                                        <tr key={t}>
+                                            <td style={td(320)}>{t}</td>
+                                            <td style={td(200)}>
+                                                <input
+                                                    type="number"
+                                                    min="0.01"
+                                                    step="0.01"
+                                                    value={currentFactors[t]}
+                                                    onChange={(e) => setFactorFor(t, e.target.value)}
+                                                    style={input(180)}
+                                                />
+                                            </td>
+                                            <td style={td(120)}>
+                                                {!Object.prototype.hasOwnProperty.call(baseFactors, t) && (
+                                                    <button onClick={() => deleteType(t)} style={btn("danger")}>Delete</button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    <tr>
+                                        <td style={td(320)}>
                                             <input
-                                                type="number"
-                                                min="0.01"
-                                                step="0.01"
-                                                value={currentFactors[t]}
-                                                onChange={(e) => setFactorFor(t, e.target.value)}
-                                                style={input(180)}
+                                                placeholder="Add new type (e.g., Assembly – exhibition)"
+                                                value={newTypeName}
+                                                onChange={(e) => setNewTypeName(e.target.value)}
+                                                style={input(300)}
                                             />
                                         </td>
+                                        <td style={td(200)}>
+                                            <em style={{ color: "#666" }}>Default 10 m²/person (edit after adding)</em>
+                                        </td>
                                         <td style={td(120)}>
-                                            {!Object.prototype.hasOwnProperty.call(baseFactors, t) && (
-                                                <button onClick={() => deleteType(t)} style={btn("danger")}>Delete</button>
-                                            )}
+                                            <button onClick={addNewType} style={btn()}>Add type</button>
                                         </td>
                                     </tr>
-                                ))}
-                                <tr>
-                                    <td style={td(320)}>
-                                        <input
-                                            placeholder="Add new type (e.g., Assembly – exhibition)"
-                                            value={newTypeName}
-                                            onChange={(e) => setNewTypeName(e.target.value)}
-                                            style={input(300)}
-                                        />
-                                    </td>
-                                    <td style={td(200)}>
-                                        <em style={{ color: "#666" }}>Default 10 m²/person (edit after adding)</em>
-                                    </td>
-                                    <td style={td(120)}>
-                                        <button onClick={addNewType} style={btn()}>Add type</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p style={{ color: "#888", marginTop: 8 }}>
+                            These are convenience defaults. Always verify against the official code adopted in your project’s jurisdiction.
+                        </p>
                     </div>
-                    <p style={{ color: "#888", marginTop: 8 }}>
-                        These are convenience defaults. Always verify against the official code adopted in your project’s jurisdiction.
-                    </p>
-                </div>
-            )}
+                )}
 
-            {/* Drag & drop zone for upload mode */}
-            {!isManual && (
-                <div
-                    onDrop={onDropZone}
-                    onDragOver={onDragOver}
-                    onDragLeave={onDragLeave}
-                    style={{
-                        marginTop: 12,
-                        padding: 14,
-                        border: "2px dashed #cbd5e1",
-                        borderRadius: 10,
-                        textAlign: "center",
-                        background: isDragging ? "#f0f9ff" : "#fafafa"
-                    }}
-                >
-                    Drag & drop an Excel file (.xlsx / .xls) here, or use the file picker above.
-                </div>
-            )}
+                {/* Drag & drop zone for upload mode */}
+                {!isManual && (
+                    <div
+                        onDrop={onDropZone}
+                        onDragOver={onDragOver}
+                        onDragLeave={onDragLeave}
+                        style={{
+                            marginTop: 12,
+                            padding: 14,
+                            border: "2px dashed #cbd5e1",
+                            borderRadius: 10,
+                            textAlign: "center",
+                            background: isDragging ? "#f0f9ff" : "#fafafa"
+                        }}
+                    >
+                        Drag & drop an Excel file (.xlsx / .xls) here, or use the file picker above.
+                    </div>
+                )}
 
-            {/* Grid + Summary */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16, marginTop: 16 }}>
-                <div style={{ border: "1px solid #e5e7eb", borderRadius: 10, overflow: "hidden" }}>
-                    <div style={{ padding: 10, background: "#fafafa", display: "flex", alignItems: "center", gap: 8 }}>
-                        <strong>{isManual ? "Manual Entry" : "Uploaded / Editable Grid"}</strong>
-                        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-                            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                <input
-                                    type="checkbox"
-                                    checked={visibleRows.length > 0 && visibleRows.every((r) => r.sel)}
-                                    onChange={(e) => setAllSelected(e.target.checked)}
-                                />
-                                Select all ({selCount})
-                            </label>
+                {/* Grid + Summary */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16, marginTop: 16, height: "70vh" }}>
+                    <div style={{ border: "1px solid #e5e7eb", borderRadius: 10, overflow: "hidden", height: "100%", display: "flex", flexDirection: "column" }}>
+                        <div style={{ padding: 10, background: "#fafafa", display: "flex", alignItems: "center", gap: 8, position: "sticky", top: 0, zIndex: 2 }}>
+                            <strong>{isManual ? "Manual Entry" : "Uploaded / Editable Grid"}</strong>
+                            <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                                <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={visibleRows.length > 0 && visibleRows.every((r) => r.sel)}
+                                        onChange={(e) => setAllSelected(e.target.checked)}
+                                    />
+                                    Select all ({selCount})
+                                </label>
 
-                            {/* Bulk actions */}
-                            <select
-                                onChange={(e) => {
-                                    if (e.target.value === "__") return;
-                                    applyTypeToSelected(e.target.value);
-                                    e.target.value = "__";
-                                }}
-                                defaultValue="__"
-                                style={select(200)}
-                                title="Apply type to selected rows"
-                            >
-                                <option value="__" disabled>Apply type to selected…</option>
-                                {typeList.map((t) => <option key={t}>{t}</option>)}
-                            </select>
-                            <button onClick={duplicateSelected} disabled={selCount === 0} style={btn("ghost")}>Duplicate</button>
-                            <button onClick={deleteSelected} disabled={selCount === 0} style={btn("danger")}>Delete</button>
+                                {/* Bulk actions */}
+                                <select
+                                    onChange={(e) => {
+                                        if (e.target.value === "__") return;
+                                        applyTypeToSelected(e.target.value);
+                                        e.target.value = "__";
+                                    }}
+                                    defaultValue="__"
+                                    style={select(200)}
+                                    title="Apply type to selected rows"
+                                >
+                                    <option value="__" disabled>Apply type to selected…</option>
+                                    {typeList.map((t) => <option key={t}>{t}</option>)}
+                                </select>
+                                <button onClick={duplicateSelected} disabled={selCount === 0} style={btn("ghost")}>Duplicate</button>
+                                <button onClick={deleteSelected} disabled={selCount === 0} style={btn("danger")}>Delete</button>
+                                <button onClick={() => {
+                                    if (mode === "manual") setManualRows([]);
+                                    else setGridRows([]);
+                                }} style={btn("danger")}>Delete All</button>
+                            </div>
+                        </div>
+
+                        <div style={{ overflowX: "auto", overflowY: "auto", flex: 1, minHeight: 0 }}>
+                            {isManual ? (
+                                <table style={table()}>
+                                    <thead>
+                                        <tr>
+                                            <th style={th(40)}></th>
+                                            <Th label="#" onClick={() => toggleSort("number")} active={sortKey === "number"} dir={sortDir} />
+                                            <Th label="Room Name" onClick={() => toggleSort("name")} active={sortKey === "name"} dir={sortDir} />
+                                            <Th label={`Area (${unitSystem === 'imperial' ? 'ft²' : 'm²'})`} width={120} onClick={() => toggleSort("area")} active={sortKey === "area"} dir={sortDir} />
+                                            <Th label="Occupancy Type" width={240} onClick={() => toggleSort("type")} active={sortKey === "type"} dir={sortDir} />
+                                            <Th label="Load" width={100} onClick={() => toggleSort("load")} active={sortKey === "load"} dir={sortDir} />
+                                            <th style={th(60)}></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {displayedManual.map((r) => (
+                                            <tr key={r.id}>
+                                                <td style={td(40)}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={!!r.sel}
+                                                        onChange={(e) =>
+                                                            setManualRows((prev) => prev.map((x) => x.id === r.id ? { ...x, sel: e.target.checked } : x))
+                                                        }
+                                                    />
+                                                </td>
+                                                <td style={td(80)}>
+                                                    <input value={r.number} onChange={(e) => updateManual(r.id, "number", e.target.value)} style={input(70)} />
+                                                </td>
+                                                <td style={td()}>
+                                                    <input value={r.name} onChange={(e) => updateManual(r.id, "name", e.target.value)} style={input()} />
+                                                </td>
+                                                <td style={td(120)}>
+                                                    <input
+                                                        value={r.area}
+                                                        onChange={(e) => updateManual(r.id, "area", e.target.value)}
+                                                        style={input(100)}
+                                                        inputMode="decimal"
+                                                        placeholder="0"
+                                                    />
+                                                </td>
+                                                <td style={td(240)}>
+                                                    <select
+                                                        value={r.type}
+                                                        onChange={(e) => updateManual(r.id, "type", e.target.value)}
+                                                        style={select(220)}
+                                                    >
+                                                        {typeList.map((t) => <option key={t} value={t}>{t}</option>)}
+                                                    </select>
+                                                </td>
+                                                <td style={td(100)}><span style={pill()}>{r.load}</span></td>
+                                                <td style={td(60)}>
+                                                    <button onClick={() => removeManualRow(r.id)} style={btn("danger")}>×</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {displayedManual.length === 0 && (
+                                            <tr>
+                                                <td colSpan={7} style={{ padding: 16, textAlign: "center", color: "#666" }}>
+                                                    No rows match your filters. Try clearing search/type filter.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <table style={table()}>
+                                    <thead>
+                                        <tr>
+                                            <th style={th(40)}></th>
+                                            <Th label="Room #" width={100} onClick={() => toggleSort("number")} active={sortKey === "number"} dir={sortDir} />
+                                            <Th label="Room Name" onClick={() => toggleSort("name")} active={sortKey === "name"} dir={sortDir} />
+                                            <Th label={`Area (${unitSystem === 'imperial' ? 'ft²' : 'm²'})`} width={120} onClick={() => toggleSort("area")} active={sortKey === "area"} dir={sortDir} />
+                                            <Th label="Occupancy Type" width={260} onClick={() => toggleSort("type")} active={sortKey === "type"} dir={sortDir} />
+                                            <Th label="Load" width={100} onClick={() => toggleSort("load")} active={sortKey === "load"} dir={sortDir} />
+                                            <th style={th(60)}></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {displayedGrid.map((r) => (
+                                            <tr key={r.id}>
+                                                <td style={td(40)}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={!!r.sel}
+                                                        onChange={(e) =>
+                                                            setGridRows((prev) => prev.map((x) => x.id === r.id ? { ...x, sel: e.target.checked } : x))
+                                                        }
+                                                    />
+                                                </td>
+                                                <td style={td(100)}>
+                                                    <input value={r["Room #"]} onChange={(e) => updateGrid(r.id, "Room #", e.target.value)} style={input(90)} />
+                                                </td>
+                                                <td style={td()}>
+                                                    <input value={r["Room Name"]} onChange={(e) => updateGrid(r.id, "Room Name", e.target.value)} style={input()} />
+                                                </td>
+                                                <td style={td(120)}>
+                                                    <input
+                                                        value={r["Area (m²)"]}
+                                                        onChange={(e) => updateGrid(r.id, "Area (m²)", e.target.value)}
+                                                        style={input(100)}
+                                                        inputMode="decimal"
+                                                        placeholder="0"
+                                                    />
+                                                </td>
+                                                <td style={td(260)}>
+                                                    <select
+                                                        value={r["Occupancy Type"]}
+                                                        onChange={(e) => updateGrid(r.id, "Occupancy Type", e.target.value)}
+                                                        style={select(240)}
+                                                    >
+                                                        {typeList.map((t) => <option key={t} value={t}>{t}</option>)}
+                                                    </select>
+                                                </td>
+                                                <td style={td(100)}><span style={pill()}>{r["Occupant Load"]}</span></td>
+                                                <td style={td(60)}>
+                                                    <button onClick={() => removeGridRow(r.id)} style={btn("danger")}>×</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {displayedGrid.length === 0 && (
+                                            <tr>
+                                                <td colSpan={7} style={{ padding: 16, textAlign: "center", color: "#666" }}>
+                                                    No rows match your filters. Try clearing search/type filter.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            )}
                         </div>
                     </div>
 
-                    <div style={{ overflowX: "auto" }}>
-                        {isManual ? (
-                            <table style={table()}>
-                                <thead>
-                                    <tr>
-                                        <th style={th(40)}></th>
-                                        <Th label="#" onClick={() => toggleSort("number")} active={sortKey === "number"} dir={sortDir} />
-                                        <Th label="Room Name" onClick={() => toggleSort("name")} active={sortKey === "name"} dir={sortDir} />
-                                        <Th label={`Area (${unitSystem === 'imperial' ? 'ft²' : 'm²'})`} width={120} onClick={() => toggleSort("area")} active={sortKey === "area"} dir={sortDir} />
-                                        <Th label="Occupancy Type" width={240} onClick={() => toggleSort("type")} active={sortKey === "type"} dir={sortDir} />
-                                        <Th label="Load" width={100} onClick={() => toggleSort("load")} active={sortKey === "load"} dir={sortDir} />
-                                        <th style={th(60)}></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {displayedManual.map((r) => (
-                                        <tr key={r.id}>
-                                            <td style={td(40)}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={!!r.sel}
-                                                    onChange={(e) =>
-                                                        setManualRows((prev) => prev.map((x) => x.id === r.id ? { ...x, sel: e.target.checked } : x))
-                                                    }
-                                                />
-                                            </td>
-                                            <td style={td(80)}>
-                                                <input value={r.number} onChange={(e) => updateManual(r.id, "number", e.target.value)} style={input(70)} />
-                                            </td>
-                                            <td style={td()}>
-                                                <input value={r.name} onChange={(e) => updateManual(r.id, "name", e.target.value)} style={input()} />
-                                            </td>
-                                            <td style={td(120)}>
-                                                <input
-                                                    value={r.area}
-                                                    onChange={(e) => updateManual(r.id, "area", e.target.value)}
-                                                    style={input(100)}
-                                                    inputMode="decimal"
-                                                    placeholder="0"
-                                                />
-                                            </td>
-                                            <td style={td(240)}>
-                                                <select
-                                                    value={r.type}
-                                                    onChange={(e) => updateManual(r.id, "type", e.target.value)}
-                                                    style={select(220)}
-                                                >
-                                                    {typeList.map((t) => <option key={t} value={t}>{t}</option>)}
-                                                </select>
-                                            </td>
-                                            <td style={td(100)}><span style={pill()}>{r.load}</span></td>
-                                            <td style={td(60)}>
-                                                <button onClick={() => removeManualRow(r.id)} style={btn("danger")}>×</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {displayedManual.length === 0 && (
-                                        <tr>
-                                            <td colSpan={7} style={{ padding: 16, textAlign: "center", color: "#666" }}>
-                                                No rows match your filters. Try clearing search/type filter.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        ) : (
-                            <table style={table()}>
-                                <thead>
-                                    <tr>
-                                        <th style={th(40)}></th>
-                                        <Th label="Room #" width={100} onClick={() => toggleSort("number")} active={sortKey === "number"} dir={sortDir} />
-                                        <Th label="Room Name" onClick={() => toggleSort("name")} active={sortKey === "name"} dir={sortDir} />
-                                        <Th label={`Area (${unitSystem === 'imperial' ? 'ft²' : 'm²'})`} width={120} onClick={() => toggleSort("area")} active={sortKey === "area"} dir={sortDir} />
-                                        <Th label="Occupancy Type" width={260} onClick={() => toggleSort("type")} active={sortKey === "type"} dir={sortDir} />
-                                        <Th label="Load" width={100} onClick={() => toggleSort("load")} active={sortKey === "load"} dir={sortDir} />
-                                        <th style={th(60)}></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {displayedGrid.map((r) => (
-                                        <tr key={r.id}>
-                                            <td style={td(40)}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={!!r.sel}
-                                                    onChange={(e) =>
-                                                        setGridRows((prev) => prev.map((x) => x.id === r.id ? { ...x, sel: e.target.checked } : x))
-                                                    }
-                                                />
-                                            </td>
-                                            <td style={td(100)}>
-                                                <input value={r["Room #"]} onChange={(e) => updateGrid(r.id, "Room #", e.target.value)} style={input(90)} />
-                                            </td>
-                                            <td style={td()}>
-                                                <input value={r["Room Name"]} onChange={(e) => updateGrid(r.id, "Room Name", e.target.value)} style={input()} />
-                                            </td>
-                                            <td style={td(120)}>
-                                                <input
-                                                    value={r["Area (m²)"]}
-                                                    onChange={(e) => updateGrid(r.id, "Area (m²)", e.target.value)}
-                                                    style={input(100)}
-                                                    inputMode="decimal"
-                                                    placeholder="0"
-                                                />
-                                            </td>
-                                            <td style={td(260)}>
-                                                <select
-                                                    value={r["Occupancy Type"]}
-                                                    onChange={(e) => updateGrid(r.id, "Occupancy Type", e.target.value)}
-                                                    style={select(240)}
-                                                >
-                                                    {typeList.map((t) => <option key={t} value={t}>{t}</option>)}
-                                                </select>
-                                            </td>
-                                            <td style={td(100)}><span style={pill()}>{r["Occupant Load"]}</span></td>
-                                            <td style={td(60)}>
-                                                <button onClick={() => removeGridRow(r.id)} style={btn("danger")}>×</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {displayedGrid.length === 0 && (
-                                        <tr>
-                                            <td colSpan={7} style={{ padding: 16, textAlign: "center", color: "#666" }}>
-                                                No rows match your filters. Try clearing search/type filter.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
+                    {/* Totals */}
+                    <aside style={{ border: "1px solid #e5e7eb", borderRadius: 10, padding: 16, height: "fit-content" }}>
+                        <h3 style={{ marginTop: 0 }}>Totals</h3>
+                        <div style={{ marginBottom: 8, color: "#666" }}>Code: {CODE_SETS[codeId]?.label || codeId}</div>
+                        <TotalsPanel rows={rowsForExport()} />
+                    </aside>
                 </div>
-
-                {/* Totals */}
-                <aside style={{ border: "1px solid #e5e7eb", borderRadius: 10, padding: 16, height: "fit-content" }}>
-                    <h3 style={{ marginTop: 0 }}>Totals</h3>
-                    <div style={{ marginBottom: 8, color: "#666" }}>Code: {CODE_SETS[codeId]?.label || codeId}</div>
-                    <TotalsPanel rows={rowsForExport()} />
-                </aside>
             </div>
         </div>
     );
