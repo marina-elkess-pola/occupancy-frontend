@@ -241,17 +241,6 @@ export default function OccuCalcTools() {
     useEffect(() => {
         localStorage.setItem('occuCalc.unitSystem', unitSystem);
     }, [unitSystem]);
-    // Keyboard shortcut: add row on '+' or '_' key
-    useEffect(() => {
-        const handler = (e) => {
-            if ((e.key === '+' || e.key === '_') && !e.ctrlKey && !e.altKey && !e.metaKey) {
-                if (mode === 'manual') addManualRow(1);
-                else addGridRow(1);
-            }
-        };
-        window.addEventListener('keydown', handler);
-        return () => window.removeEventListener('keydown', handler);
-    }, [mode]);
     // overrides per code (allow edits)
     const [overrides, setOverrides] = useState({});
     useEffect(() => {
@@ -308,7 +297,7 @@ export default function OccuCalcTools() {
         );
     }, [typeList, currentFactors]);
 
-    // --- Fix load calculation: ensure occupant load is recalculated on area/type/code/unitSystem change ---
+    // --- Fix load calculation: recalculate on area/type/code/unitSystem/manualRows/gridRows change ---
     useEffect(() => {
         setManualRows(rows => rows.map(r => {
             const factor = currentFactors[r.type] || 1;
@@ -317,6 +306,8 @@ export default function OccuCalcTools() {
                 load: ceilDivide(r.area, factor, unitSystem)
             };
         }));
+    }, [currentFactors, unitSystem, codeId, manualRows]);
+    useEffect(() => {
         setGridRows(rows => rows.map(r => {
             const factor = currentFactors[r["Occupancy Type"]] || 1;
             return {
@@ -324,7 +315,7 @@ export default function OccuCalcTools() {
                 Load: ceilDivide(r["Area"], factor, unitSystem)
             };
         }));
-    }, [currentFactors, unitSystem, codeId]);
+    }, [currentFactors, unitSystem, codeId, gridRows]);
 
     // -------------------- UI state: search/filter/sort & prefs
     const [search, setSearch] = useState("");
