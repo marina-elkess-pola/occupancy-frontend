@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
+import occuCalcLogo from './assets/occucalc-logo.png';
 
 /* =========================================================
    Code sets (starter defaults, m² per person).
@@ -777,7 +778,7 @@ export default function OccuCalcTools() {
         <div style={{ fontFamily: "system-ui, sans-serif", background: "#f8fafc", minHeight: "100vh", padding: 0, margin: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
             <div style={{ maxWidth: 1200, width: "100%", margin: "0 auto", padding: "32px 0 0 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, justifyContent: "center" }}>
-                    <img src={require('./assets/occucalc-logo.png')} alt="OccuCalc logo" style={{ width: 56, height: 56, marginRight: 8, borderRadius: 12, background: '#fff' }} />
+                    <img src={occuCalcLogo} alt="OccuCalc logo" style={{ width: 56, height: 56, marginRight: 8, borderRadius: 12, background: '#fff' }} />
                     <h1 style={{ fontSize: "2.6rem", fontWeight: 700, margin: 0, letterSpacing: 1, textAlign: "center" }}>
                         OccuCalc
                     </h1>
