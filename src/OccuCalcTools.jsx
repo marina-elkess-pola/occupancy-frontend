@@ -308,6 +308,24 @@ export default function OccuCalcTools() {
         );
     }, [typeList, currentFactors]);
 
+    // --- Fix load calculation: ensure occupant load is recalculated on area/type/code/unitSystem change ---
+    useEffect(() => {
+        setManualRows(rows => rows.map(r => {
+            const factor = currentFactors[r.type] || 1;
+            return {
+                ...r,
+                load: ceilDivide(r.area, factor, unitSystem)
+            };
+        }));
+        setGridRows(rows => rows.map(r => {
+            const factor = currentFactors[r["Occupancy Type"]] || 1;
+            return {
+                ...r,
+                Load: ceilDivide(r["Area"], factor, unitSystem)
+            };
+        }));
+    }, [currentFactors, unitSystem, codeId]);
+
     // -------------------- UI state: search/filter/sort & prefs
     const [search, setSearch] = useState("");
     const [filterType, setFilterType] = useState("All");
@@ -775,7 +793,7 @@ export default function OccuCalcTools() {
     };
 
     return (
-        <div style={{ fontFamily: "system-ui, sans-serif", background: "#f8fafc", minHeight: "100vh", padding: 0, margin: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ fontFamily: "system-ui, sans-serif", background: "#f8fafc", minHeight: "100vh", padding: 0, margin: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100vw", overflowX: "hidden" }}>
             <div style={{ maxWidth: 1200, width: "100%", margin: "0 auto", padding: "32px 0 0 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, justifyContent: "center" }}>
                     <img src={occuCalcLogo} alt="OccuCalc logo" style={{ width: 56, height: 56, marginRight: 8, borderRadius: 12, background: '#fff' }} />
@@ -797,6 +815,20 @@ export default function OccuCalcTools() {
                         </select>
                     </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                        {/* Add Row and Remove Row buttons for manual mode */}
+                        {mode === "manual" && (
+                            <>
+                                <button onClick={() => addManualRow(1)} style={btn("primary")}>+ Add Row</button>
+                                <button
+                                    onClick={() => setManualRows(rows => rows.slice(0, -1))}
+                                    style={btn("danger")}
+                                    disabled={manualRows.length === 0}
+                                    title="Remove the last row"
+                                >
+                                    Remove Row
+                                </button>
+                            </>
+                        )}
                         <button
                             onClick={() => (mode === 'manual' ? addManualRow(1) : addGridRow(1))}
                             style={{ ...btn(), fontSize: 18, fontWeight: 600, marginRight: 8 }}
@@ -972,11 +1004,24 @@ export default function OccuCalcTools() {
                                     {typeList.map((t) => <option key={t}>{t}</option>)}
                                 </select>
                                 <button onClick={duplicateSelected} disabled={selCount === 0} style={btn("ghost")}>Duplicate</button>
-                                <button onClick={deleteSelected} disabled={selCount === 0} style={btn("danger")}>Delete</button>
-                                <button onClick={() => {
-                                    if (mode === "manual") setManualRows([]);
-                                    else setGridRows([]);
-                                }} style={btn("danger")}>Delete All</button>
+                                <button
+                                    onClick={deleteSelected}
+                                    disabled={selCount === 0}
+                                    style={btn("danger")}
+                                    title="Delete only selected rows"
+                                >
+                                    Delete Selected
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (mode === "manual") setManualRows([]);
+                                        else setGridRows([]);
+                                    }}
+                                    style={btn("danger")}
+                                    title="Delete all rows in the grid"
+                                >
+                                    Delete All
+                                </button>
                             </div>
                         </div>
 
