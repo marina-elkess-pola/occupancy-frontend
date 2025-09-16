@@ -823,11 +823,10 @@ export default function OccuCalcTools() {
                         <button
                             onClick={() => (mode === 'manual' ? addManualRow(1) : addGridRow(1))}
                             style={{ ...btn(), fontSize: 18, fontWeight: 600, marginRight: 8 }}
-                            title="Add a new space/room (shortcut: + or _ key)"
+                            title="Add a new space/room"
                         >
                             ＋ Add Row
                         </button>
-                        <span style={{ color: '#888', fontSize: 13 }}>(Shortcut: + or _ key)</span>
                         <label><strong>Mode:</strong></label>
                         <select value={mode} onChange={(e) => setMode(e.target.value)} style={select(160)}>
                             <option value="manual">Manual entry</option>
